@@ -139,64 +139,6 @@ app.post("/login", jsonParser, function (req, res, next) {
   });
 });
 
-// for show resualt
-app.post("/diseaseresualt", jsonParser, function (req, res, next) {
-  poolCluster.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-    } else {
-      connection.query(
-        "SELECT * FROM Disease WHERE DiseaseNameEng = ?;",
-        [req.body.name],
-        function (err, data) {
-          if (err) {
-            res.json({ err });
-          } else {
-            const DiseaseData = {
-              DiseaseID: data[0].DiseaseID,
-              DiseaseName: data[0].DiseaseName, //update this
-              InfoDisease: data[0].InfoDisease,
-              ProtectInfo: data[0].ProtectInfo,
-              ImageUrl: "http://192.168.1.22:3030/image/" + data[0].ImageName,
-              DiseaseNameEng: data[0].DiseaseNameEng,
-            };
-            res.json({ DiseaseData });
-            // connection.end();
-            connection.release();
-          }
-        }
-      );
-    }
-  });
-});
-
-app.get("/disease", jsonParser, function (req, res, next) {
-  poolCluster.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-    } else {
-      connection.query(
-        "SELECT * FROM Disease",
-        [req.body.name],
-        function (err, data) {
-          if (err) {
-            res.json({ err });
-          } else {
-            console.log(data.length);
-            for (let i = 0; i < data.length; i++) {
-              data[i].ImageUrl =
-                "http://192.168.1.22:3030/image/" + data[i].ImageName;
-            }
-            res.json({ data });
-            // connection.end();
-            connection.release();
-          }
-        }
-      );
-    }
-  });
-});
-
 app.post("/DatabaseImage", jsonParser, function (req, res) {
   let ts = new Date().toLocaleDateString()
   poolCluster.getConnection(function (err, connection) {
@@ -204,7 +146,7 @@ app.post("/DatabaseImage", jsonParser, function (req, res) {
       console.log(err);
     } else {
       connection.query(
-        "INSERT INTO DiseaseReport (UserID, UserFname, UserLname, Latitude, Longitude, PhoneNumber, Detail, DiseaseID, DiseaseName, DiseaseImage, ResaultPredict, DiseaseNameEng , DateReport) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO DiseaseReport (UserID, UserFname, UserLname, Latitude, Longitude, PhoneNumber, Detail, DiseaseID, DiseaseName, DiseaseImage, ResaultPredict, DiseaseNameEng , DateReport, AddressUser) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
         [
           req.body.UserID,
           req.body.UserFname,
@@ -219,6 +161,7 @@ app.post("/DatabaseImage", jsonParser, function (req, res) {
           req.body.ResaultPredict,
           req.body.DiseaseNameEng,
           ts,
+          req.body.AddressUser,
         ],
         function (err) {
           if (err) {
@@ -226,94 +169,6 @@ app.post("/DatabaseImage", jsonParser, function (req, res) {
             connection.release();
           } else {
             res.json({ status: "success" });
-            connection.release();
-          }
-        }
-      );
-    }
-  });
-});
-
-app.post("/uploadImage", jsonParser, function (req, res) {
-  let sampleFile;
-  let uploadPath;
-  if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).send("No files were uploaded.");
-  }
-  // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
-  sampleFile = req.files;
-  console.log(sampleFile);
-  console.log(sampleFile.file.name);
-  uploadPath = __dirname + "/image/" + sampleFile.file.name + ".jpg";
-  console.log(uploadPath);
-  // Use the mv() method to place the file somewhere on your server
-  sampleFile.file.mv(uploadPath, function (err) {
-    if (err) return res.status(500).send(err);
-    res.send("File uploaded!");
-  });
-});
-
-//for get image url
-app.get("/image/:filename", (req, res) => {
-  const filePath = path.join(__dirname, "/image/", req.params.filename);
-  console.log(filePath);
-  const fileType = mime.lookup(filePath);
-
-  fs.readFile(filePath, (err, data) => {
-    if (err) throw err;
-    res.writeHead(200, { "Content-Type": fileType });
-    res.end(data);
-  });
-});
-
-app.post("/diseasereport", jsonParser, function (req, res) {
-  console.log(req.body);
-  poolCluster.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-    } else {
-      connection.query(
-        "SELECT * FROM DiseaseReport WHERE UserID = ?;",
-        [req.body.userID],
-        function (err, data) {
-          if (err) {
-            res.json({ err });
-          } else {
-            console.log(data.length);
-            for (let i = 0; i < data.length; i++) {
-              data[i].ImageUrl =
-                "http://192.168.1.22:3030/image/" + data[i].DiseaseImage;
-            }
-            res.json({ data });
-            // connection.end();
-            connection.release();
-          }
-        }
-      );
-    }
-  });
-});
-
-app.get("/diseaseallreport", jsonParser, function (req, res) {
-  console.log(req.body);
-  poolCluster.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-    } else {
-      connection.query(
-        "SELECT * FROM DiseaseReport",
-        [req.body.userID],
-        function (err, data) {
-          if (err) {
-            res.json({ err });
-          } else {
-            console.log(data.length);
-            for (let i = 0; i < data.length; i++) {
-              data[i].ImageUrl =
-                "http://192.168.1.22:3030/image/" + data[i].DiseaseImage ;
-            }
-            res.json({ data });
-            // connection.end();
             connection.release();
           }
         }
