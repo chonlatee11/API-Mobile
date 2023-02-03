@@ -15,11 +15,10 @@ app.use(cors());
 // Use the express-fileupload middleware
 app.use(fileUpload());
 var mysql = require("mysql");
-const { url } = require("inspector");
 var poolCluster = mysql.createPoolCluster();
 poolCluster.add("node0", {
-  host: "192.168.1.22",
-  port: "3306",
+  host: "127.0.0.1",
+  port: "3307",
   database: "mymariaDB",
   user: "devchon",
   password: "devchon101",
