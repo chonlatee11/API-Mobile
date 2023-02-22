@@ -3,9 +3,6 @@ var cors = require("cors");
 var app = express();
 var bodyParser = require("body-parser");
 var jsonParser = bodyParser.json();
-const fileUpload = require("express-fileupload");
-const path = require("path");
-const mime = require("mime");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
@@ -13,7 +10,7 @@ require("dotenv").config();
 // Use cors to allow cross origin resource sharing
 app.use(cors());
 // Use the express-fileupload middleware
-app.use(fileUpload());
+
 var mysql = require("mysql");
 var poolCluster = mysql.createPoolCluster();
 poolCluster.add("node0", {
@@ -23,25 +20,6 @@ poolCluster.add("node0", {
   user: "devchon",
   password: "devchon101",
   charset: "utf8mb4",
-});
-
-app.get("/getUser", jsonParser, function (req, res, next) {
-  poolCluster.getConnection(function (err, connection) {
-    if (err) {
-      console.log(err);
-    } else {
-      connection.query("SELECT * FROM User", function (err, rows) {
-        if (err) {
-          res.json({ err });
-        } else {
-          res.json({ rows });
-          // connection.end();
-          console.log(rows);
-          connection.release();
-        }
-      });
-    }
-  });
 });
 
 app.post("/register", jsonParser, function (req, res, next) {
@@ -113,9 +91,12 @@ app.post("/login", jsonParser, function (req, res, next) {
                     // console.log(rows);
                     // console.log(rows.length);
                     // console.log(res.statusCode);
+                    let token = jwt.sign({ email: element.Email }, secret, {
+                      expiresIn: "1h",
+                    });
                     res.json({
                       user: element,
-                      accessToken: 'wBv"_vLj>Ido#r4Fm1|YCm&wOwCA_v',
+                      accessToken: token,
                     });
                     connection.release();
                   } else {
